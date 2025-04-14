@@ -1,4 +1,4 @@
-import React, { Children, useEffect, useState } from 'react'
+import  {  useEffect, useState } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Auth from './pages/auth/auth'
 import Chat from './pages/chat/chat'
@@ -6,7 +6,10 @@ import Profile from './pages/profile/profile'
 import { useAppStore } from './store'
 import { apiClient } from './lib/api-client'
 import { GET_USER_INFO } from './utils/constants'
-
+import "./App.css"
+import ForgotPassword from './pages/auth/forgotpassword'
+import VerifyOtp from './pages/auth/VerifyOtp'
+import ResetPassword from './pages/auth/Reset'
 const PrivateRoute = ({ children }) => {
   const { userInfo } = useAppStore()
   const isAuthenticated = !!userInfo;
@@ -34,6 +37,8 @@ const App = () => {
 
       } catch (error) {
         setUserInfo(undefined)
+        console.log(error);
+        
       } finally {
         setLoading(false)
       }
@@ -51,6 +56,9 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path='/auth' element={<AuthRoute><Auth /></AuthRoute>} />
+        <Route path='/forgot-password' element={<ForgotPassword />} />
+        <Route path='/verify-otp' element={<VerifyOtp />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
         <Route path='/chat' element={<PrivateRoute><Chat /></PrivateRoute>} />
         <Route path='/profile' element={<PrivateRoute><Profile /></PrivateRoute>} />
 

@@ -6,8 +6,10 @@ export const searchContacts = async (request, response, next) => {
   try {
     const { searchTerm } = request.body;
     if (searchTerm === undefined || null) {
-      return response.status(400).send("searchTerm is required!");
-    }
+      const error = new Error("searchTerm is required!");
+      error.status = 400;
+      throw error;
+    } 
     const sanitizedSearchterm = searchTerm.replace(
       /[.*+?^${}()|[\]\\]/g,
       "\\$&"
@@ -23,10 +25,9 @@ export const searchContacts = async (request, response, next) => {
       ],
     });
     return response.status(200).json({ contacts });
-    //   return response.status(200).send("User Logged out!")
   } catch (error) {
     console.log({ error });
-    return response.status(500).send("Internal Server Error");
+    next(error);
   }
 };
 
@@ -84,6 +85,31 @@ export const getContactsForDmList = async (request, response, next) => {
     return response.status(200).json({ contacts });
   } catch (error) {
     console.log({ error });
-    return response.status(500).send("Internal Server Error");
+    next(error);
+  }
+};
+
+
+export const getAllContacts = async (request, response, next) => {
+  try {
+    const users = await User.find(
+      { _id: { $ne: request.userId } },
+      "firstName lastName image color _id email"
+    );
+console.log("users",users)
+    const contacts = users.map((user) => ({
+      label: user.firstName ? `${user.firstName} ${user.lastName}` : user.email, 
+      value: user._id, 
+      image: user.image ? `http://localhost:${process.env.PORT}/${user.image}` : null,
+      color: user.color,
+    }));
+
+    console.log("contats:", contacts);
+    
+
+    return response.status(200).json({ contacts });
+  } catch (error) {
+    console.log({ error });
+    next(error);
   }
 };

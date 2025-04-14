@@ -3,7 +3,7 @@ import { apiClient } from '@/lib/api-client'
 import { useAppStore } from '@/store'
 import { UPLOAD_FILE_ROUTE } from '@/utils/constants'
 import EmojiPicker from 'emoji-picker-react'
-import React, { useEffect, useRef, useState } from 'react'
+import  { useEffect, useRef, useState } from 'react'
 import { GrAttachment } from 'react-icons/gr'
 import { IoSend } from 'react-icons/io5'
 import { RiEmojiStickerLine } from 'react-icons/ri'
@@ -12,6 +12,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 
 const MessageBar = () => {
   const [message, setMessage] = useState('')
+  const [typingTimeout, setTypingTimeout] = useState(null);
   const socket = useSocket()
   const { selectedChatType, selectedChatData, userInfo, setIsUploading, setFileUploadProgress } = useAppStore()
   const emojiRef = useRef()
@@ -39,15 +40,49 @@ const MessageBar = () => {
       console.error("Socket is not initialized");
       return;
     }
+  
+    const trimmedMessage = message.trim(); 
+  
+    if (!trimmedMessage) return; 
+  
     if (selectedChatType === "contact") {
       socket.emit("sendMessage", {
         sender: userInfo.id,
-        content: message,
+        content: trimmedMessage, 
         recipient: selectedChatData._id,
         messageType: "text",
         fileUrl: undefined,
       });
+      
+    }else if(selectedChatType=== "group"){
+      socket.emit("send-group-message",{
+        sender: userInfo.id,
+        content: trimmedMessage, 
+        groupId: selectedChatData._id,
+        messageType: "text",
+        fileUrl: undefined,
+      })
     }
+  
+    setMessage(""); 
+  };
+  const handleInputChange = (e) => {
+    const text = e.target.value;
+    setMessage(text);
+  
+    if (!socket || !selectedChatData) return;
+  
+    const recipientId = selectedChatData._id;
+    
+    socket.emit("typing", { recipient: recipientId });
+  
+    if (typingTimeout) clearTimeout(typingTimeout);
+  
+    const newTimeout = setTimeout(() => {
+      socket.emit("stopTyping", { recipient: recipientId });
+    }, 2000);
+  
+    setTypingTimeout(newTimeout);
   };
 
   const handleAttachmentChange = async (event) => {
@@ -73,6 +108,14 @@ const MessageBar = () => {
               messageType: "file",
               fileUrl: response.data.filePath,
             });
+          } else if(selectedChatType==="group"){
+            socket.emit("send-group-message",{
+              sender: userInfo.id,
+              content: undefined,
+              groupId: selectedChatData._id,
+              messageType: "file",
+              fileUrl: response.data.filePath,
+            })
           }
         }
       }
@@ -83,81 +126,81 @@ const MessageBar = () => {
   }
 
   return (
-    <div className='h-[10vh] bg-[#1c1d25] flex justify-center items-center px-8 mb-6 gap-6'>
-      <div className="flex-1 flex bg-[#2a2b33] rounded-full items-center gap-5 pr-5">
-        <input type="text" placeholder="Message" value={message} onChange={(e) => setMessage(e.target.value)} className='flex-1 p-5 bg-transparent rounded-md poppins-medium focus:border-none focus:outline-none' />
-        
-        {/* Attachment Icon */}
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className='text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all'>
-              <GrAttachment className='text-xl' />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="bg-[#1e1d1d] p-3 bottom-12 right-[-35px] absolute rounded-xl w-30 border-none">
-            <div className="flex flex-col gap-3">
-              {/* Image Option */}
-              <div 
-                onClick={() => { fileInputRef.current.accept = 'image/*'; fileInputRef.current.click(); }}
-                className="flex flex-col items-center text-center cursor-pointer">
-                <div className="bg-[#2a2b33] p-3 mb-1 text-white hover:bg-[#8417ff] transition-all rounded-xl">
-                  <BsFileImage className="text-2xl" />
-                </div>
-                <p className="text-white text-xs">Image</p>
-              </div>
+    <div className='h-[10vh] bg-[#1c1d25] flex items-center px-4 sm:px-8 mb-4 gap-4 sm:gap-6 w-full'>
+  <div className="flex-1 flex bg-[#2a2b33] rounded-full items-center mt-4 gap-3 sm:gap-5 px-3 sm:px-5 py-2 sm:py-3">
+   
+    <input
+  type="text"
+  placeholder="Message"
+  value={message}
+  onChange={handleInputChange} // Use new function
+  className='flex-1 p-2 sm:p-3 bg-transparent rounded-md poppins-medium focus:outline-none text-white placeholder-gray-400 text-sm sm:text-base'
+/>
 
-              {/* Video Option */}
-              <div 
-                onClick={() => { fileInputRef.current.accept = 'video/*'; fileInputRef.current.click(); }}
-                className="flex flex-col items-center text-center cursor-pointer ">
-                <div className="bg-[#2a2b33] p-3 mb-1 text-white hover:bg-[#8417ff] transition-all rounded-xl">
-                  <BsFillCameraVideoFill className="text-2xl" />
-                </div>
-                <p className="text-white text-xs">Video</p>
-              </div>
 
-              {/* Document Option */}
-              <div 
-                onClick={() => { fileInputRef.current.accept = 'application/*'; fileInputRef.current.click(); }}
-                className="flex flex-col items-center text-center cursor-pointer">
-                <div className="bg-[#2a2b33] p-3 rounded-xl mb-1 text-white hover:bg-[#8417ff] transition-all">
-                  <BsFileText className="text-2xl" />
-                </div>
-                <p className="text-white text-xs">Document</p>
+ 
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className='text-neutral-500 hover:text-white transition-all duration-300'>
+          <GrAttachment className='text-lg sm:text-xl' />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="bg-[#1e1d1d] p-3 bottom-12 right-[-10px] sm:right-[-35px] absolute rounded-xl w-28 sm:w-32 border-none">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+         
+          {[
+            { Icon: BsFileImage, label: "Image", accept: "image/*" },
+            { Icon: BsFillCameraVideoFill, label: "Video", accept: "video/*" },
+            { Icon: BsFileText, label: "Doc", accept: "application/*" },
+            { Icon: GrAttachment, label: "Other", accept: "*/*" },
+          ].map(({ Icon, label, accept }) => (
+            <div key={label} className="flex flex-col items-center text-center cursor-pointer" onClick={() => { fileInputRef.current.accept = accept; fileInputRef.current.click(); }}>
+              <div className="bg-[#2a2b33] p-2 sm:p-3 mb-1 text-white hover:bg-[#8417ff] transition-all rounded-xl">
+                <Icon className="text-lg sm:text-2xl" />
               </div>
-
-              {/* Other Option */}
-              <div 
-                onClick={() => { fileInputRef.current.accept = '*/*'; fileInputRef.current.click(); }}
-                className="flex flex-col items-center text-center cursor-pointer">
-                <div className="bg-[#2a2b33] p-3 rounded-xl mb-1 text-white hover:bg-[#8417ff] transition-all">
-                  <GrAttachment className="text-2xl" />
-                </div>
-                <p className="text-white text-xs">Other</p>
-              </div>
+              <p className="text-white text-xs sm:text-sm">{label}</p>
             </div>
-          </PopoverContent>
-        </Popover>
-
-        {/* Emoji Picker */}
-        <div className="relative">
-          <button className='text-neutral-500 focus:border-none focus:outline-none focus:text-white duration-300 transition-all' onClick={() => setEmojiPickerOpen(true)}>
-            <RiEmojiStickerLine className='text-xl' />
-          </button>
-          <div className="absolute bottom-16 right-0" ref={emojiRef}>
-            <EmojiPicker theme='dark' open={emojiPickerOpen} onEmojiClick={handleEmoji} autoFocusSearch={false} />
-          </div>
+          ))}
         </div>
-      </div>
+      </PopoverContent>
+    </Popover>
 
-      {/* Send Button */}
-      <button className='bg-[#8417ff] flex rounded-full justify-center items-center p-5 focus:border-none focus:outline-none hover:bg-[#741bda] focus:bg-[#741bda] focus:text-white duration-300 transition-all' onClick={handleSendMessage}>
-        <IoSend className='text-xl' />
+   
+    <div className="relative">
+      <button className='text-neutral-500 hover:text-white transition-all duration-300' onClick={() => setEmojiPickerOpen(true)}>
+        <RiEmojiStickerLine className='text-lg sm:text-xl' />
       </button>
+      <div
+  className="fixed bottom-[6rem] left-5 sm:left-auto sm:right-5 w-[250px] sm:w-[300px] max-w-[90%] z-50"
+  ref={emojiRef}
+>
+  <EmojiPicker
+    theme="dark"
+    open={emojiPickerOpen}
+    onEmojiClick={handleEmoji}
+    autoFocusSearch={false}
+    style={{ width: "100%", minWidth: "250px", maxWidth: "300px" }} // Prevents collapse
+  />
+</div>
 
-      {/* File Input (hidden) */}
-      <input type="file" className="hidden" ref={fileInputRef} onChange={handleAttachmentChange} />
     </div>
+  </div>
+
+
+  <button
+  className={`bg-[#8417ff] flex rounded-full justify-center items-center mt-4 p-3 sm:p-5 
+    transition-all duration-300 ${!message.trim() ? "bg-[#a383c7]/80 " : "hover:bg-[#741bda]"}`}
+  onClick={handleSendMessage}
+  disabled={!message.trim()} 
+>
+  <IoSend className='text-lg sm:text-xl' />
+</button>
+
+
+
+  <input type="file" className="hidden" ref={fileInputRef} onChange={handleAttachmentChange} />
+</div>
+
   )
 }
 

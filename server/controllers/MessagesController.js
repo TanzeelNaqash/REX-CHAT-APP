@@ -1,5 +1,6 @@
 import Message from "../models/MessagesModel.js";
 import { mkdirSync, renameSync} from "fs"
+import User from "../models/UserModel.js";
 
 
 
@@ -8,8 +9,10 @@ export const getMessages = async (request, response, next) => {
      
         const user1 = request.userId;
         const user2 = request.body.id;
-      if(!user1 || !user2 ){
-        return response.status(400).send(" Both Users ID's are required!")
+      if(!user1 || !user2 ) {
+        const error = new Error("Both Users ID's are required!");
+        error.status = 400;
+        throw error;
       }
      
 
@@ -23,7 +26,7 @@ export const getMessages = async (request, response, next) => {
     //   return response.status(200).send("User Logged out!")
     } catch (error) {
       console.log({ error });
-      return response.status(500).send("Internal Server Error");
+     next(error)
     }
   };
 
@@ -33,9 +36,11 @@ export const getMessages = async (request, response, next) => {
 export const uploadFile = async (request, response, next) => {
     try {
      
-      if(!request.file){
-        return response.status(400).send("File is required!")
-      }
+      if(!request.file) {
+        const error = new Error("File is required!");
+        error.status = 400;
+        throw error;
+      } 
       const date = Date.now()
       let fileDir = `uploads/files/${date}`
       let fileName = `${fileDir}/${request.file.originalname}`
@@ -47,6 +52,8 @@ export const uploadFile = async (request, response, next) => {
     //   return response.status(200).send("User Logged out!")
     } catch (error) {
       console.log({ error });
-      return response.status(500).send("Internal Server Error");
+      next(error)
     }
   };
+
+  

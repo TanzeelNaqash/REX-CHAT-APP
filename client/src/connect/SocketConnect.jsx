@@ -24,14 +24,26 @@ export const  SocketProvider = ({children})=>{
             })
 
             const handleRecieveMessage = (message) =>{
-                const {selectedChatData, selectedChatType, addMessage} = useAppStore.getState()
+                const {selectedChatData, selectedChatType, addMessage, addContactsInDMContacts} = useAppStore.getState()
                 if(selectedChatType !== undefined && selectedChatData._id === message.sender._id || selectedChatData._id === message.recipient._id){
-                    console.log("msg rcieved", message);
+                 
                     addMessage(message)
                 }
+                addContactsInDMContacts(message)
+            }
+
+            const handleRecieveGroupMessage = (message)=>{
+                const {selectedChatData, selectedChatType, addMessage, addGroupInGroupList} = useAppStore.getState()
+                if(selectedChatType !== undefined && selectedChatData._id === message.groupId){
+                    
+                    addMessage(message)
+                }
+                addGroupInGroupList(message)
             }
 
             socket.current.on("recieveMessage",handleRecieveMessage)
+            socket.current.on("recieve-group-message",handleRecieveGroupMessage)
+
             return () => {
                 socket.current.disconnect()
             }

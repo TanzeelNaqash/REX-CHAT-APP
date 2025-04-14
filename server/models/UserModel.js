@@ -31,13 +31,13 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    chatBackgroundImage: {  // Add this field for chat background image
+    backgroundImage: {  
         type: String,
-        required: false,
+        default: null,
     },
 });
 
-// Hash the password before saving
+
 userSchema.pre("save", async function (next) {
     const salt = await genSalt();
     this.password = await hash(this.password, salt);
