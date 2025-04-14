@@ -1,7 +1,6 @@
 # REX
  
-
-A modern, full-featured **chat application** built with **React**, **Zustand**, **Node.js**, and **Socket.IO**, supporting **1-to-1 messaging**, **group chats**, **file sharing**, **custom backgrounds**, and more.
+REX is a real-time messaging app with direct messages, group chats, user search, and profile customization. Stay connected with a seamless, responsive UI and instant updates. Now in early access—join us and be part of the journey!
 
 ---
 
