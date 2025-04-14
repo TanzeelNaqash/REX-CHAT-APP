@@ -60,4 +60,22 @@ A modern, full-featured **chat application** built with **React**, **Zustand**, 
 cd server
 npm install
 npm run dev
+ 
+```
+### Configure .env for DB URI and JWT secret:
+MONGO_URI=your_mongo_connection
+JWT_SECRET=your_jwt_secret
+ 
+ ---
+### 🔧 Frontend Setup 
+```bash
+cd client
+npm install
+npm start
+```
+### 📁 Folder Structure
 
+```bash
+rex/
+├── client/           # React frontend
+└── server/           # Express backend & Socket.IO
