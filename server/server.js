@@ -45,7 +45,10 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/contacts", contactsRoutes);
 app.use("/api/messages", messagesRoutes);
-
+//To check the health of backend container
+app.get('/health', (req, res) => {
+    res.status(200).send('Healthy');
+});
 // Video upload and conversion route
 app.post("/upload-video", upload.single("video"), (req, res) => {
     const videoPath = req.file.path; // Get the path of the uploaded video
@@ -93,9 +96,10 @@ app.post("/upload-video", upload.single("video"), (req, res) => {
   
 });
 
-const server = app.listen(port, () => {
-    console.log(`Server is running @ http://localhost:${port}`);
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running @ http://localhost:${port}`);
 });
+
 
 setupSocket(server);
 
