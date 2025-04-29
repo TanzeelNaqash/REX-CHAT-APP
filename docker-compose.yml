@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  mongo:
+    image: raseebriyazkhan/mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+    networks:
+      - server-network
+
+  backend:
+    build:
+      context: ./server
+    image: raseebriyazkhan/server:latest
+    container_name: server
+    ports:
+      - "8747:8747"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    restart: always
+    networks:
+      - server-network
+
+  frontend:
+    build:
+      context: ./client
+    image: your-frontend-image:latest
+    container_name: client
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_SERVER_URL=${VITE_SERVER_URL}
+    restart: always
+    networks:
+      - server-network
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  server-network:
+    driver: bridge
+
