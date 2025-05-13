@@ -1,7 +1,7 @@
 # REX
  
 
-REX is a real-time messaging app with direct messages, group chats, user search, and profile customization. Stay connected with a seamless, responsive UI and instant updates. Now in early access—join us and be part of the journey!
+REX is a real-time messaging app with direct messages, group chats, audio/video calls, user search, and profile customization. Stay connected with a seamless, responsive UI and instant updates. Now in early access—join us and be part of the journey!
 ---
 
 ## 🚀 Features
