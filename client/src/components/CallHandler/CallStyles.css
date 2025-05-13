@@ -1,0 +1,585 @@
+.call-modal {
+  position: fixed;
+  inset: 0;
+  background: #0b141a;
+  display: flex;
+  flex-direction: column;
+  color: #e9edef;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  z-index: 1000;
+}
+
+.call-header {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #202c33;
+}
+.remote-video-fallback {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: ;
+}
+
+.blur-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(20px) brightness(0.5);
+  z-index: 1;
+}
+
+.video-status-overlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.video-paused-text {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.call-type {
+  text-align: center;
+  color: #00a884;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.caller-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  position: relative;
+  background: linear-gradient(180deg, #111b21 0%, #0b141a 100%);
+}
+
+.connection-error {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 1.125rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+  font-size: 0.8125rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.caller-avatar {
+  width: 8rem;
+  height: 8rem;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  background: rgba(0, 168, 132, 0.1);
+  border: 2px solid rgba(78, 78, 78, 0.856);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: rgba(78, 78, 78, 0.8);
+  font-weight: 500;
+}
+
+.caller-avatar.large {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background-color: #2f303b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: white;
+  margin: 0 auto 20px;
+  overflow: hidden;
+}
+
+.avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  color: white;
+}
+
+.caller-name {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: #e9edef;
+}
+
+.call-status {
+  color: #8696a0;
+  margin-bottom: 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.call-timer {
+  font-size: 0.875rem;
+  color: #8696a0;
+  letter-spacing: 0.5px;
+}
+
+.call-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(11, 20, 26, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.call-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  cursor: pointer;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.call-control.on {
+  color: #fff;
+  background: rgba(150, 13, 155, 0.767);
+}
+
+.call-control.off {
+  color: #8696a0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.call-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 50%;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  color: white;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.call-action.accept {
+  background: #00a884;
+  box-shadow: 0 2px 8px rgba(0, 168, 132, 0.3);
+}
+
+.call-action.accept:hover {
+  background: #008f6f;
+}
+
+.call-action.decline, 
+.call-action.cancel {
+  background: #f54e4e;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.call-action.decline:hover,
+.call-action.cancel:hover {
+  background: #dc2626;
+}
+
+.call-action span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.incoming-call,
+.outgoing-call {
+  background: #0b141a;
+}
+
+.active-call {
+  background-color: #0b141a;
+}
+
+.active-call.voice-call {
+  background: linear-gradient(180deg, #075e54 0%, #128c7e 100%);
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #525252;
+ 
+  overflow: hidden;
+}
+
+.video-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #1a1a1a;
+  position: relative;
+}
+
+.video-fallback .caller-avatar {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+}
+
+.video-fallback .caller-name {
+  color: white;
+  font-size: 24px;
+  margin: 0;
+}
+
+.remote-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.local-video {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 6rem;
+  height: 8rem;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 2px solid rgba(85, 85, 85, 0.856);
+  z-index: 5;
+}
+
+.local-video-fallback {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 6rem;
+  height: 6rem;
+  border-radius: 0.5rem;
+  border: 2px solid rgb(61, 61, 61);
+  z-index: 5;
+  background-color: #3b3b3b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.local-video-fallback .caller-avatar.small {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+}
+
+.voice-call-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+}
+
+.call-info {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: rgba(11, 20, 26, 0.9);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.call-control.end {
+  background-color: #f54e4e;
+  width: 4rem;
+  height: 4rem;
+}
+
+.call-control.end:hover {
+  background-color: #dc2626;
+}
+.call-control,
+.call-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #8100a8; /* Your button color */
+  transition: background-color 0.2s ease;
+}
+
+.call-control:active::after,
+.call-action:active::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4); /* Ripple color */
+  animation: ripple 0.6s ease-out;
+  pointer-events: none;
+}
+
+/* Generate multiple ripples */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+/* Icons stay on top of the ripples */
+.call-control svg,
+.call-action svg {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ripple is generated at the click position */
+.call-control:active::after,
+.call-action:active::after {
+  width: 80px;  /* Ripple size */
+  height: 80px; /* Ripple size */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 0.6s ease-out infinite; /* Infinite ripple animation */
+}
+
+
+/* Video Call Styles */
+.video-call .video-container {
+  position: relative;
+  flex: 1;
+  background: #000;
+  overflow: hidden;
+}
+
+.video-call .local-video {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 6rem;
+  height: 8rem;
+  border-radius: 0.5rem;
+  border: 2px solid rgb(119, 48, 119);
+  object-fit: cover;
+  z-index: 2;
+}
+
+
+@media (min-width: 769px) {
+  .volume-control {
+    margin-top: 1rem;
+  }
+}
+@media (max-width: 768px) {
+  .call-actions {
+    gap: 0.75rem;
+    padding: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .call-control,
+  .call-action {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .call-control.end {
+    width: 3.25rem;
+    height: 3.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .call-actions {
+    gap: 0.5rem;
+    padding: 1rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .call-control,
+  .call-action {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .call-control.end {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}
+
+.call-control svg,
+.call-action svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .call-control svg,
+  .call-action svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .call-control svg,
+  .call-action svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+.call-control,
+.call-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.call-control svg,
+.call-action svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .caller-avatar {
+    width: 7rem;
+    height: 7rem;
+    font-size: 2.5rem;
+  }
+  
+  .call-control,
+  .call-action {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .call-control.end {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  .local-video {
+    width: 5rem;
+    height: 6.66rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .call-actions {
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+  
+  .call-control,
+  .call-action {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  
+  .call-control.end {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .local-video {
+    width: 4rem;
+    height: 5.33rem;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+.video-status {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  backdrop-filter: blur(8px);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.video-status svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #f54e4e;
+} 

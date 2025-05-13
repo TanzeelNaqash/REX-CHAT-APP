@@ -1,4 +1,9 @@
-export const createAuthSlice = (set)=>({
+export const createAuthSlice = (set, get)=>({
     userInfo:undefined,
-    setUserInfo:(userInfo)=>set({userInfo})
+    setUserInfo:(newUserInfo)=>set((state)=>({
+        userInfo: newUserInfo ? {
+            ...state.userInfo,
+            ...newUserInfo
+        } : undefined
+    }))
 })
