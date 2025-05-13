@@ -1,148 +1,511 @@
-import React, { useEffect, useRef, useState } from 'react';
-import ReactDOM from 'react-dom/client'; // Correct import for React 18+
-import videojs from 'video.js';
-import '@videojs/http-streaming/dist/videojs-http-streaming.min.js'; // Import VHS for HLS/DASH support
-import 'video.js/dist/video-js.css'; // Don't forget to import the CSS
-import { FaBackward, FaForward, FaCog } from 'react-icons/fa'; // Importing React Icons
+import { useState, useRef, useEffect } from "react";
+import ReactPlayer from "react-player";
+import {
+  FiPlay,
+  FiPause,
+  FiVolume2,
+  FiVolumeX,
+  FiMaximize,
+  FiMinimize,
+  FiSkipBack,
+  FiSkipForward,
+} from "react-icons/fi";
+import { MdSettings, MdClosedCaption } from "react-icons/md";
 
-const VideoPlayer = ({ url }) => {
-  const videoRef = useRef(null);
-  const [isBuffering, setIsBuffering] = useState(false); // Track buffering state
-  const [qualityLevels, setQualityLevels] = useState([]); // Track available quality levels
-  const [selectedQuality, setSelectedQuality] = useState(null); // Track selected quality level
+const VideoPlayer = ({ url, poster }) => {
+  // Player states
+  const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.8);
+  const [muted, setMuted] = useState(false);
+  const [progress, setProgress] = useState({ played: 0, loaded: 0 });
+  const [duration, setDuration] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [quality, setQuality] = useState("auto");
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [showControls, setShowControls] = useState(true);
+  const [showTapControls, setShowTapControls] = useState(false);
+  const [tapAction, setTapAction] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [captionsEnabled, setCaptionsEnabled] = useState(true);
+  const [subtitleFile, setSubtitleFile] = useState(null);
 
-  useEffect(() => {
-    const player = videojs(videoRef.current, {
-      controls: true,
-      autoplay: true,  // Set to autoplay on load
-      preload: 'auto',
-      techOrder: ['html5'],
-      sources: [
-        {
-          src: url,
-          type: url.endsWith('m3u8') ? 'application/x-mpegURL' : url.endsWith('mpd') ? 'application/dash+xml' : '',
-        },
-      ],
-      playbackRates: [0.5, 1, 1.5, 2], // Speed control (0.5x, 1x, 1.5x, 2x)
-      liveui: true, // Enable live streaming UI features (if needed)
-    });
+  const playerRef = useRef(null);
+  const playerContainerRef = useRef(null);
+  const controlsRef = useRef(null);
+  const settingsRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-    // Monitor quality switch for HLS/DASH
-    player.ready(() => {
-      const hls = player.hls;
-      const dash = player.dash;
+  // Available quality options
+  const qualityOptions = [
+    { value: "auto", label: "Auto" },
+    { value: "1080", label: "1080p" },
+    { value: "720", label: "720p" },
+    { value: "480", label: "480p" },
+    { value: "360", label: "360p" },
+  ];
 
-      // For HLS
-      if (hls) {
-        hls.on('levelswitched', () => {
-          const currentLevel = hls.levels[hls.currentLevel];
-          console.log('Switched to quality level: ', currentLevel.height);
-          setSelectedQuality(currentLevel); // Update selected quality level
-        });
+  // Playback speed options
+  const speedOptions = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
 
-        // Get the available quality levels for HLS
-        hls.on('levels', (event, levels) => {
-          console.log('Available HLS levels:', levels);
-          setQualityLevels(levels); // Set the available quality levels
-        });
-      }
+  // Toggle play/pause
+  const togglePlay = () => {
+    setPlaying(!playing);
+    flashTapControl(playing ? "pause" : "play");
+  };
 
-      // For DASH
-      if (dash) {
-        dash.on('qualitylevelswitched', () => {
-          const currentLevel = dash.levels[dash.currentLevel];
-          console.log('Switched to quality level: ', currentLevel.height);
-          setSelectedQuality(currentLevel); // Update selected quality level
-        });
+  // Handle volume change
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setMuted(newVolume === 0);
+  };
 
-        // Get the available quality levels for DASH
-        dash.on('qualitylevels', (event, levels) => {
-          console.log('Available DASH levels:', levels);
-          setQualityLevels(levels); // Set the available quality levels
-        });
-      }
-    });
+  // Toggle mute
+  const toggleMute = () => {
+    setMuted(!muted);
+    flashTapControl(muted ? "unmute" : "mute");
+  };
 
-    // Add custom rewind and fast-forward buttons with React Icons
-    const controlBar = player.controlBar;
+  // Handle progress
+  const handleProgress = (state) => {
+    setProgress(state);
+  };
 
-    // Rewind button with FaBackward icon
-    const rewindButton = controlBar.addChild('button', {});
-    rewindButton.addClass('vjs-rewind-button vjs-control vjs-button bg-blue-500 hover:bg-blue-700');
-    rewindButton.el().setAttribute('title', 'Rewind');
-    ReactDOM.createRoot(rewindButton.el()).render(<FaBackward size={20} color="white" />);
-    rewindButton.on('click', () => {
-      const currentTime = player.currentTime();
-      player.currentTime(currentTime - 10); // Rewind by 10 seconds
-    });
+  // Handle duration
+  const handleDuration = (duration) => {
+    setDuration(duration);
+  };
 
-    // Forward button with FaForward icon
-    const forwardButton = controlBar.addChild('button', {});
-    forwardButton.addClass('vjs-forward-button vjs-control vjs-button bg-blue-500 hover:bg-blue-700');
-    forwardButton.el().setAttribute('title', 'Forward');
-    ReactDOM.createRoot(forwardButton.el()).render(<FaForward size={20} color="white" />);
-    forwardButton.on('click', () => {
-      const currentTime = player.currentTime();
-      player.currentTime(currentTime + 10); // Fast forward by 10 seconds
-    });
+  // Handle seek
+  const handleSeek = (e) => {
+    const seekTo = parseFloat(e.target.value);
+    playerRef.current.seekTo(seekTo, "fraction");
+    setProgress({ ...progress, played: seekTo });
+  };
+  const handleSeekMouseDown = () => {
+    setIsDragging(true);
+  };
 
-    // Custom quality selector
-    const qualityButton = controlBar.addChild('button', {});
-    qualityButton.addClass('vjs-quality-button vjs-control vjs-button bg-blue-500 hover:bg-blue-700');
-    qualityButton.el().setAttribute('title', 'Quality Settings');
-    ReactDOM.createRoot(qualityButton.el()).render(<FaCog size={20} color="white" />);
-    qualityButton.on('click', () => {
-      if (qualityLevels.length > 0) {
-        // Clear existing buttons and create new ones dynamically
-        const existingButtons = document.querySelectorAll('.vjs-quality-button-item');
-        existingButtons.forEach((btn) => btn.remove());
+  const handleSeekMouseUp = (e) => {
+    const seekTo = parseFloat(e.target.value);
+    playerRef.current.seekTo(seekTo, "fraction");
+    setProgress({ ...progress, played: seekTo });
+    setPlaying(true);
+    setIsDragging(false);
+  };
 
-        qualityLevels.forEach((level, index) => {
-          const button = document.createElement('button');
-          button.className = 'vjs-quality-button-item vjs-control vjs-button bg-blue-500 hover:bg-blue-700';
-          button.innerText = `${level.height}p`;
-          button.addEventListener('click', () => {
-            if (hls) {
-              hls.currentLevel = index; // Switch quality level for HLS
-            }
-            if (dash) {
-              dash.currentLevel = index; // Switch quality level for DASH
-            }
-            setSelectedQuality(level); // Update the selected quality
+  // Skip forward/backward
+  const skip = (seconds) => {
+    const newTime = playerRef.current.getCurrentTime() + seconds;
+    playerRef.current.seekTo(newTime, "seconds");
+    flashTapControl(seconds > 0 ? "forward" : "backward");
+  };
+
+  // Toggle fullscreen - FIXED
+  const toggleFullscreen = () => {
+    if (!playerContainerRef.current) return;
+
+    try {
+      // Check for browser prefixed methods
+      const requestFullscreen = 
+        playerContainerRef.current.requestFullscreen ||
+        playerContainerRef.current.webkitRequestFullscreen ||
+        playerContainerRef.current.mozRequestFullScreen ||
+        playerContainerRef.current.msRequestFullscreen;
+        
+      const exitFullscreen = 
+        document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen;
+        
+      const fullscreenElement = 
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement;
+
+      if (!fullscreenElement) {
+        requestFullscreen.call(playerContainerRef.current)
+          .then(() => {
+            setIsFullscreen(true);
+          })
+          .catch((err) => {
+            console.error("Error attempting to enable fullscreen:", err);
           });
-
-          // Append button to the control bar
-          controlBar.el().appendChild(button);
-        });
+      } else {
+        exitFullscreen.call(document)
+          .then(() => {
+            setIsFullscreen(false);
+          })
+          .catch((err) => {
+            console.error("Error attempting to exit fullscreen:", err);
+            // Force the state update even if the method fails
+            setIsFullscreen(false);
+          });
       }
-    });
+    } catch (err) {
+      console.error("Fullscreen error:", err);
+      // Toggle the state anyway to maintain UI consistency
+      setIsFullscreen(!isFullscreen);
+    }
+  };
 
-    // Detect buffering state (show a loading indicator when buffering)
-    player.on('waiting', () => {
-      setIsBuffering(true); // Video is buffering
-    });
-    player.on('playing', () => {
-      setIsBuffering(false); // Video has started playing
-    });
+  // Flash tap control indicator
+  const flashTapControl = (action) => {
+    setTapAction(action);
+    setShowTapControls(true);
+    setTimeout(() => {
+      setShowTapControls(false);
+      setTapAction(null);
+    }, 500);
+  };
 
-    // Error handling
-    player.on('error', () => {
-      console.error('Video.js error:', player.error());
-    });
+  // Format time (seconds to HH:MM:SS)
+  const formatTime = (seconds) => {
+    const date = new Date(seconds * 1000);
+    const hh = date.getUTCHours();
+    const mm = date.getUTCMinutes();
+    const ss = date.getUTCSeconds().toString().padStart(2, "0");
 
-    // Dispose the player on unmount
-    return () => {
-      player.dispose();
+    if (hh) {
+      return `${hh}:${mm.toString().padStart(2, "0")}:${ss}`;
+    }
+    return `${mm}:${ss}`;
+  };
+
+  // Handle screen taps
+  const handleScreenTap = () => {
+    // Middle section - toggle play/pause
+    togglePlay();
+  };
+
+  // Hide controls after inactivity
+  useEffect(() => {
+    let timeout;
+    const resetControlsTimeout = () => {
+      clearTimeout(timeout);
+      setShowControls(true);
+      timeout = setTimeout(() => setShowControls(false), 3000);
     };
-  }, [url, qualityLevels]);
 
+    resetControlsTimeout();
+
+    return () => clearTimeout(timeout);
+  }, [playing, progress]);
+
+  // Close settings when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setShowSettings(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Handle fullscreen change events - FIXED
+  useEffect(() => {
+    const updateFullscreenState = () => {
+      const fullscreenElement = 
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement;
+      
+      setIsFullscreen(!!fullscreenElement);
+    };
+
+    // Add all possible fullscreen change event listeners
+    document.addEventListener("fullscreenchange", updateFullscreenState);
+    document.addEventListener("webkitfullscreenchange", updateFullscreenState);
+    document.addEventListener("mozfullscreenchange", updateFullscreenState);
+    document.addEventListener("MSFullscreenChange", updateFullscreenState);
+
+    return () => {
+      // Clean up all added event listeners
+      document.removeEventListener("fullscreenchange", updateFullscreenState);
+      document.removeEventListener("webkitfullscreenchange", updateFullscreenState);
+      document.removeEventListener("mozfullscreenchange", updateFullscreenState);
+      document.removeEventListener("MSFullscreenChange", updateFullscreenState);
+    };
+  }, []);
+  
+  useEffect(() => {
+    return () => {
+      if (subtitleFile?.url) URL.revokeObjectURL(subtitleFile.url);
+    };
+  }, [subtitleFile]);
+
+  const convertSrtToVtt = async (file) => {
+    const text = await file.text();
+    const vttText = "WEBVTT\n\n" + text.replace(/,/g, ".");
+    const blob = new Blob([vttText], { type: "text/vtt" });
+    return URL.createObjectURL(blob);
+  };
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const vttUrl = file.name.endsWith(".srt")
+        ? await convertSrtToVtt(file)
+        : URL.createObjectURL(file);
+      setSubtitleFile({ url: vttUrl, type: "text/vtt" });
+    }
+  };
+    
   return (
-    <div className="relative">
-      <div className={`absolute inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 ${isBuffering ? 'block' : 'hidden'}`}>
-        <div className="text-white text-lg">Buffering...</div>
+    <div
+      ref={playerContainerRef}
+      className="relative w-full max-w-4xl mx-auto bg-black rounded-lg overflow-hidden group"
+    >
+      {/* Video Player */}
+      <div
+        className="relative w-full aspect-video"
+        onMouseMove={() => setShowControls(true)}
+        onMouseLeave={() => !playing && setShowControls(false)}
+      >
+        <ReactPlayer
+          ref={playerRef}
+          url={url}
+          playing={playing}
+          volume={muted ? 0 : volume}
+          playbackRate={playbackRate}
+          width="100%"
+          height="100%"
+          onProgress={handleProgress}
+          onDuration={handleDuration}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+          light={poster}
+          config={{
+            file: {
+              attributes: {
+                controlsList: "nodownload",
+                disablePictureInPicture: true,
+              },
+              tracks: subtitleFile
+  ? [
+      {
+        kind: "subtitles",
+        src: subtitleFile.url,
+        srcLang: "en",
+        label: "User Subtitle",
+        default: true,
+      },
+    ]
+  : [],
+
+            },
+          }}
+        />
+     <div
+  className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+>
+  <div
+    className="w-32 h-32 pointer-events-auto"
+    onClick={handleScreenTap}
+  />
+</div>
+
+        {/* Tap Controls Indicator */}
+        {showTapControls && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="p-4 rounded-full bg-black/70 text-white text-4xl transition-all duration-300 animate-pulse">
+              {tapAction === "play" && <FiPlay />}
+              {tapAction === "pause" && <FiPause />}
+              {tapAction === "mute" && <FiVolumeX />}
+              {tapAction === "unmute" && <FiVolume2 />}
+            </div>
+          </div>
+        )}
+
+        {/* Controls Overlay */}
+        {showControls && (
+          <div
+            ref={controlsRef}
+            className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300"
+          >
+            {/* Progress Bar */}
+            <div className="relative w-full mb-2">
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.001}
+                value={progress.played}
+                onMouseDown={handleSeekMouseDown}
+                onChange={(e) =>
+                  setProgress({
+                    ...progress,
+                    played: parseFloat(e.target.value),
+                  })
+                }
+                onMouseUp={handleSeekMouseUp}
+                className={`w-full h-1 appearance-none rounded-full bg-gray-700 transition-all ${
+                  isDragging ? "cursor-grabbing" : "cursor-pointer"
+                }`}
+                style={{
+                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${
+                    progress.played * 100
+                  }%, #4b5563 ${progress.played * 100}%)`,
+                }}
+              />
+              {isDragging && (
+                <div
+                  className="absolute top-0 -mt-1 w-3 h-3 bg-blue-500 rounded-full"
+                  style={{
+                    left: `${progress.played * 100}%`,
+                    transform: "translateX(-50%)",
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Main Controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={togglePlay}
+                  className="text-white hover:text-gray-300 transition-colors"
+                >
+                  {playing ? <FiPause size={20} /> : <FiPlay size={20} />}
+                </button>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={toggleMute}
+                    className="text-white hover:text-gray-300 transition-colors"
+                  >
+                    {muted || volume === 0 ? (
+                      <FiVolumeX size={18} />
+                    ) : (
+                      <FiVolume2 size={18} />
+                    )}
+                  </button>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={muted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="w-20 h-1 rounded-full appearance-none bg-gray-600 cursor-pointer transition hover:h-1.5"
+                  />
+                </div>
+
+                <span className="text-sm text-gray-300 hidden md:block">
+                  {formatTime(progress.played * duration)} /{" "}
+                  {formatTime(duration)}
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-4">
+              <button
+  onClick={() => {
+    if (subtitleFile) {
+      setCaptionsEnabled(!captionsEnabled); // toggle visibility
+    } else {
+      fileInputRef.current.click(); // open file picker
+    }
+  }}
+  className="relative text-white hover:text-gray-300 transition-colors"
+>
+  <MdClosedCaption size={20} />
+  {captionsEnabled && subtitleFile && (
+    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-sm"></span>
+  )}
+</button>
+
+<input
+  type="file"
+  accept=".vtt,.srt"
+  ref={fileInputRef}
+  onChange={handleFileChange}
+  className="hidden"
+/>
+
+
+                <div className="relative" ref={settingsRef}>
+                  <button
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="text-white hover:text-gray-300 transition-colors"
+                  >
+                    <MdSettings size={20} />
+                  </button>
+
+                  {showSettings && (
+                    <div className="absolute bottom-10 right-0 w-40 md:w-48 bg-gray-800 rounded-md shadow-lg z-10 overflow-hidden">
+                      {/* <div className="p-2 border-b border-gray-700">
+                        <h3 className="text-sm font-medium text-white px-2 py-1">
+                          Quality
+                        </h3>
+                        {qualityOptions.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => {
+                              setQuality(option.value);
+                              setShowSettings(false);
+                            }}
+                            className={`block w-full text-left px-3 py-2 text-sm rounded ${
+                              quality === option.value
+                                ? "bg-blue-600 text-white"
+                                : "text-gray-300 hover:bg-gray-700"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        ))}
+                      </div> */}
+                      <div className="p-2 ">
+                        <h3 className="text-xs md:text-sm font-medium text-white px-2 py-1">
+                          Playback Speed
+                        </h3>
+                        <div className="grid grid-cols-2 gap-1">
+                        {speedOptions.map((speed) => (
+                          <button
+                            key={speed}
+                            onClick={() => {
+                              setPlaybackRate(speed);
+                              setShowSettings(false);
+                            }}
+                            className={`block w-full text-left px-2 py-1 text-xs md:text-sm rounded ${
+                              playbackRate === speed
+                                ? "bg-blue-600 text-white"
+                                : "text-gray-300 hover:bg-gray-700"
+                            }`}
+                          >
+                            {speed}x
+                          </button>
+                        ))}
+                        </div>
+                       
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={toggleFullscreen}
+                  className="text-white hover:text-gray-300 transition-colors"
+                >
+                  {isFullscreen ? (
+                    <FiMinimize size={18} />
+                  ) : (
+                    <FiMaximize size={18} />
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <video ref={videoRef} className="video-js vjs-default-skin" />
+     
     </div>
+    
   );
 };
 
