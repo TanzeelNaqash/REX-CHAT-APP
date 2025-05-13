@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error <%= statusCode %></title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <style>
+        body { font-family: "poppins", sans-serif; text-align: center; padding: 50px; }
+        h1 { color: darkmagenta; }
+        #lottie-container { width: 300px; height: 300px; margin: 0 auto; }
+        a{
+            text-decoration: none;
+            color: #fff;
+            background-color: purple;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+       
+        a:hover{
+            background-color: rgb(114, 6, 114);
+        }
+        p{
+            color: darkmagenta;
+        }
+    </style>
+</head>
+<body>
+    <h1>Error <%= statusCode %></h1>
+    <p><%= message %></p>
+
+
+    <div id="lottie-container"></div>
+
+    <a href="/">Go Back</a>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const animationData = "<%- statusCode === 404 ? '/lottie/notfound.json' : '/lottie/internalserver.json' %>";
+    
+            lottie.loadAnimation({
+                container: document.getElementById("lottie-container"),
+                renderer: "svg",
+                loop: true,
+                autoplay: true,
+                path: animationData 
+            });
+        });
+    </script>
+    
+</body>
+</html>
