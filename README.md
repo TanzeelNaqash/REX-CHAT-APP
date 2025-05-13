@@ -13,7 +13,9 @@ REX is a real-time messaging app with direct messages, group chats, user search,
 - 😄 **Emoji Picker** – Express yourself with a wide range of emojis
 - 📎 **File Uploads** – Share images, videos, and files easily
 - 📱 **Fully Responsive** – Works seamlessly on mobile, tablet, and desktop
-
+- 🎨 Custom Chat Backgrounds - Personalize chat window with user-uploaded images
+- 📞 Audio/Video Calls (WebRTC) - Peer-to-peer calls with WebRTC (1:1)
+  
 ---
 
 ## 🛠 Tech Stack
@@ -22,12 +24,13 @@ REX is a real-time messaging app with direct messages, group chats, user search,
 - ⚛️ **React**
 - 🧠 **Zustand** – Lightweight state management
 - 🌐 **Socket.IO Client**
-- 🎨 **CSS** (Custom / Framework of choice)
+- 🎨 Tailwind CSS + CSS Modules (Styling)
+- 📞 WebRTC (Audio/video calls)
 
 ### Backend
 - 🟢 **Node.js + Express**
 - 🌐 **Socket.IO Server**
-- 🗂 **MongoDB** (Mongoose ODM)
+- 🗂 **MongoDB** 
 - 📤 **Multer** for file uploads
 - 🔐 **JWT / Token-based Authentication**
 
@@ -70,7 +73,13 @@ JWT_SECRET=your_jwt_secret
 ```bash
 cd client
 npm install
-npm start
+npm run dev
+```
+ ---
+### 🔧 Production Setup
+```
+cd client
+npm build
 ```
 ### 📁 Folder Structure
 
