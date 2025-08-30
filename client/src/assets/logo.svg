@@ -1,4 +1,22 @@
-<svg width="128" height="64" viewBox="0 0 128 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M20 30 L30 10 L40 30 L50 10 L60 30" stroke="#4A90E2" stroke-width="4" fill="none"/>
-  <text x="65" y="40" font-size="30" font-weight="bold" fill="#4A90E2" font-family="Arial">REX</text>
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0A0A0A"/>
+      <stop offset="100%" stop-color="#1A1A2E"/>
+    </radialGradient>
+    <radialGradient id="edgeGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6A00F4"/>
+      <stop offset="100%" stop-color="#141E30"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Outer Glowing Orb -->
+  <circle cx="100" cy="100" r="80" fill="url(#glow)" stroke="url(#edgeGlow)" stroke-width="4"/>
+  
+  <!-- Face Section -->
+  <rect x="70" y="90" width="60" height="20" rx="10" fill="url(#edgeGlow)"/>
+  
+  <!-- Eyes -->
+  <rect x="85" y="95" width="5" height="10" rx="2" fill="white"/>
+  <rect x="110" y="95" width="5" height="10" rx="2" fill="white"/>
 </svg>

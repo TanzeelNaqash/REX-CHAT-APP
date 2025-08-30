@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to REX CHAT APP - BACKEND</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.9.6/lottie.min.js"></script>
+    <style>
+        body { font-family:"poppins", sans-serif; text-align: center; padding: 50px; }
+        
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+        h1 { color: darkmagenta; }
+        #lottie-container { width: 300px; height: 300px; margin: 0 auto; }
+        a{
+            text-decoration: none;
+            color: #fff;
+            background-color: purple;
+            border: none;
+            padding: 1rem;
+            border-radius: 50px;
+        }
+       
+        a:hover{
+            background-color: rgb(114, 6, 114);
+        }
+        p{
+            color: darkmagenta;
+            font-size: 1.2rem;
+        }
+    </style>
+    
+</head>
+<body>
+    <h1>Welcome to Rex Chat APP !</h1>
+    <p>Backend is Running Smoothly...</p>
+
+
+    <div id="lottie-container"></div>
+
+  
+
+    <p id="api-status" style="font-size: 1.2rem; ">Checking API status...</p>
+
+    <script>
+        fetch("/")
+            .then((res) => res.ok ? "API is Online ✅" : "API is Down ❌")
+            .then((status) => document.getElementById("api-status").innerText = status)
+            .catch(() => document.getElementById("api-status").innerText = "API is Down ❌");
+    </script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const animationData = "<%-'/lottie/serverrunning.json'%>";
+    
+            lottie.loadAnimation({
+                container: document.getElementById("lottie-container"),
+                renderer: "svg",
+                loop: true,
+                autoplay: true,
+                path: animationData 
+            });
+        });
+    </script>
+    
+</body>
+</html>
