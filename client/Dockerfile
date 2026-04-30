@@ -1,5 +1,5 @@
 # Stage 1: Build the frontend
-FROM node:20 AS builder
+FROM node:22 AS builder
 
 WORKDIR /app
 ENV NODE_OPTIONS="--max-old-space-size=4096"
